@@ -8,7 +8,7 @@ import (
 const (
 	envServerAddress     = "RUN_ADDRESS"
 	flagServerAddress    = "a"
-	defaultServerAddress = ":8080"
+	defaultServerAddress = "localhost:8000"
 
 	 
 	envLogLevel     = "LOG_LEVEL"
@@ -25,7 +25,7 @@ const (
 
 	envAccuralSystemAddress = "ACCRUAL_SYSTEM_ADDRESS"
 	flagAccuralSystemAddress = "r"
-	AccuralSystemAddress = ""
+	AccuralSystemAddress = "http://localhost:8080"
 
 )
 
