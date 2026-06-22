@@ -40,7 +40,7 @@ func main() {
 		return
 	}
 
-	if err := db.Migrate("../migrations"); err != nil {
+	if err := db.Migrate("migrations"); err != nil {
 		log.Fatal().Err(err).Msg("Ошибка применения миграций")
 	}
 
