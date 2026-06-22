@@ -22,6 +22,11 @@ const (
 	envSecretKey     = "SECRET_KEY"
 	flagSecretKey    = "k"
 	defaultSecretKey = "123"
+
+	envAccuralSystemAddress = "ACCRUAL_SYSTEM_ADDRESS"
+	flagAccuralSystemAddress = "r"
+	AccuralSystemAddress = ""
+
 )
 
 type Config struct {
@@ -30,6 +35,7 @@ type Config struct {
 	LogLevel        string
 	DatabaseDSN     string
 	SecretKey       string
+	AccuralSystemAddress  string
 }
 
 func getParam(envName, flagValue string) string {
@@ -45,6 +51,7 @@ func New() *Config {
 	logLevel := flag.String(flagLogLevel, defaultLogLevel, "")
 	databaseDSN := flag.String(flagDatabaseDSN, defaultDatabaseDSN, "")
 	secretKey := flag.String(flagSecretKey, defaultSecretKey, "")
+	accuralSystemAddress := flag.String(flagAccuralSystemAddress, defaultSecretKey, "")
 
 	flag.Parse()
 
@@ -53,6 +60,7 @@ func New() *Config {
 		LogLevel:        getParam(envLogLevel, *logLevel),
 		DatabaseDSN:     getParam(envDatabaseDSN, *databaseDSN),
 		SecretKey:       getParam(envSecretKey, *secretKey),
+		AccuralSystemAddress:   getParam(envAccuralSystemAddress, *accuralSystemAddress),
 	}
 
 	return cfg
