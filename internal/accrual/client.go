@@ -36,8 +36,8 @@ var ErrTooManyRequests = fmt.Errorf("too many requests")
 
 
 func (s *Client) GetOrderInfo(ctx context.Context, orderNumber string) (*AccuralOrder, error) {
-	url := fmt.Sprintf("%s/api/user/orders/%s", s.baseURL, orderNumber)
-
+	url := fmt.Sprintf("%s/api/orders/%s", s.baseURL, orderNumber)
+    log.Info().Str("url", url).Msg("Получение информации о заказе")
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("ошибка создания запроса к сервису начислений: %w", err)

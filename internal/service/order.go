@@ -133,23 +133,23 @@ func (s *OrderService) pollAccrualStatuses(ctx context.Context) {
 	switch accrualResult.Status {
 		case "REGISTERED":
 
-			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "REGISTERED",0)
+			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "REGISTERED",accrualResult.Accural)
 			if err != nil {
 				log.Err(err).Str("order", order.OrderNumber).Msg("Ошибка обновления статуса заказа")
 				}
 		case "PROCESSING":
-			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "PROCESSING",0)
+			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "PROCESSING",accrualResult.Accural)
 			if err != nil {
 				log.Err(err).Str("order", order.OrderNumber).Msg("Ошибка обновления статуса заказа")
 				}
 			log.Info().Str("order", order.OrderNumber).Float64("accrual", accrualResult.Accural).Msg("Начислено баллов")	
 		case "PROCESSED":
-			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "PROCESSED",0)
+			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "PROCESSED",accrualResult.Accural)
 			if err != nil {
 				log.Err(err).Str("order", order.OrderNumber).Msg("Ошибка обновления статуса заказа")
 				}
 		case "INVALID":
-			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "INVALID",0)
+			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "INVALID",accrualResult.Accural)
 			if err != nil {
 				log.Err(err).Str("order", order.OrderNumber).Msg("Ошибка обновления статуса заказа")
 				}
