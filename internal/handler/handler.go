@@ -42,12 +42,17 @@ func (s *Server) registerHandlers() {
 
 	authMiddleware := auth.AuthMiddlewareWithRepo(repository.NewUserRepository(nil))
 
-	s.HandleFunc("/api/user/orders", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authMiddleware(http.HandlerFunc(s.UploadOrderHandler)).ServeHTTP(w, r)
-	}))
-	s.HandleFunc("/api/user/orders", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authMiddleware(http.HandlerFunc(s.GetOrdersHandler)).ServeHTTP(w, r)
-	}))
+	// Единый хендлер для /api/user/orders — диспатчим по HTTP-методу
+	s.HandleFunc("/api/user/orders", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			authMiddleware(http.HandlerFunc(s.UploadOrderHandler)).ServeHTTP(w, r)
+		case http.MethodGet:
+			authMiddleware(http.HandlerFunc(s.GetOrdersHandler)).ServeHTTP(w, r)
+		default:
+			http.Error(w, "Метод не разрешён", http.StatusMethodNotAllowed)
+		}
+	})
 
 	s.HandleFunc("/api/user/balance", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authMiddleware(http.HandlerFunc(s.GetBalanceHandler)).ServeHTTP(w, r)
