@@ -33,11 +33,7 @@ type BalanceRepository interface {
 	UpdateBalance(ctx context.Context, userID int64, amount float64) error
 	CreateWithdrawal(ctx context.Context, withdrawal *Withdrawal) error
 	GetWithdrawalsByUserID(ctx context.Context, userID int64) ([]*Withdrawal, error)
-<<<<<<< HEAD
 	// Выполняет проверку баланса + списание + создание записи в одной транзакции
-=======
-	// Withdraw выполняет атомарное списание средств: проверка баланса + списание + создание записи
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 	Withdraw(ctx context.Context, userID int64, order string, sum int) error
 }
 

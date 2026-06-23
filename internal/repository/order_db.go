@@ -105,30 +105,16 @@ func (r *OrderDb) GetByUserID(ctx context.Context, userID int64) ([]*model.Order
 	return orders, nil
 }
 
-<<<<<<< HEAD
 func (r *OrderDb) GetByStatus(ctx context.Context, statuses ...string) ([]*model.Order, error) {
 	
-=======
-// GetByStatus возвращает заказы с указанными статусами
-func (r *OrderDb) GetByStatus(ctx context.Context, statuses ...string) ([]*model.Order, error) {
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 	if len(statuses) == 0 {
 		return nil, nil
 	}
 
-<<<<<<< HEAD
 	query := `SELECT id, user_id, order_number, status, accrual, uploaded_at
 		FROM orders
 		WHERE status = ANY($1)
 		ORDER BY uploaded_at ASC`
-=======
-	query := `
-		SELECT id, user_id, order_number, status, accrual, uploaded_at
-		FROM orders
-		WHERE status = ANY($1)
-		ORDER BY uploaded_at ASC
-	`
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 
 	rows, err := r.db.QueryContext(ctx, query, statuses)
 	if err != nil {
@@ -160,17 +146,12 @@ func (r *OrderDb) GetByStatus(ctx context.Context, statuses ...string) ([]*model
 	return orders, nil
 }
 
-<<<<<<< HEAD
-=======
-// UpdateStatus обновляет статус заказа и начисление
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 func (r *OrderDb) UpdateStatus(ctx context.Context, orderNumber string, status string, accrual float64) error {
 	query := `
 		UPDATE orders
 		SET status = $1, accrual = $2
 		WHERE order_number = $3
 	`
-<<<<<<< HEAD
 	_, err := r.db.ExecContext(ctx, query, status, accrual, orderNumber)
 	return err
 }
@@ -179,9 +160,3 @@ func (r *OrderDb) UpdateStatus(ctx context.Context, orderNumber string, status s
 
 			
 
-=======
-
-	_, err := r.db.ExecContext(ctx, query, status, accrual, orderNumber)
-	return err
-}
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53

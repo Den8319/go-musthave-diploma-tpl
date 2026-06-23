@@ -19,11 +19,7 @@ func NewBalanceRepository(db *DB) *BalanceDb {
 
 func (r *BalanceDb) GetBalance(ctx context.Context, userID int64) (*model.Balance, error) {
 	query := `
-<<<<<<< HEAD
 		SELECT  current_balance, withdrawn_balance
-=======
-		SELECT current_balance, withdrawn_balance
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 		FROM balances
 		WHERE user_id = $1
 	`
@@ -35,10 +31,7 @@ func (r *BalanceDb) GetBalance(ctx context.Context, userID int64) (*model.Balanc
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-<<<<<<< HEAD
 		
-=======
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 			return &model.Balance{Current: 0, Withdrawn: 0}, nil
 		}
 		return nil, err
@@ -65,10 +58,7 @@ func (r *BalanceDb) UpdateBalance(ctx context.Context, userID int64, amount floa
 	}
 
 	if rowsAffected == 0 {
-<<<<<<< HEAD
 		
-=======
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 		query = `
 			INSERT INTO balances (user_id, current_balance, withdrawn_balance)
 			VALUES ($1, $2, 0)
@@ -88,19 +78,11 @@ func (r *BalanceDb) CreateWithdrawal(ctx context.Context, withdrawal *model.With
 	`
 
 	err := r.db.QueryRowContext(ctx, query,
-<<<<<<< HEAD
 		 withdrawal.UserID,
 		 withdrawal.Order,
 		 float64(withdrawal.Sum),
 		 withdrawal.ProcessedAt,
 		 ).Scan(&withdrawal.ID)
-=======
-		withdrawal.UserID,
-		withdrawal.Order,
-		float64(withdrawal.Sum),
-		withdrawal.ProcessedAt,
-	).Scan(&withdrawal.ID)
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 	if err != nil {
 		return err
 	}
@@ -143,30 +125,17 @@ func (r *BalanceDb) GetWithdrawalsByUserID(ctx context.Context, userID int64) ([
 	return withdrawals, nil
 }
 
-<<<<<<< HEAD
-=======
-// Withdraw выполняет атомарное списание в рамках одной транзакции:
-// 1. Проверяет баланс (с блокировкой SELECT FOR UPDATE)
-// 2. Списание + обновление withdrawn_balance
-// 3. Создание записи о списании
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 func (r *BalanceDb) Withdraw(ctx context.Context, userID int64, order string, sum int) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
-<<<<<<< HEAD
 	defer func() {
 		if err != nil {
 			_ = tx.Rollback()
 		}
 	}()
 
-=======
-	defer tx.Rollback() // безопасно — no-op после Commit
-
-	// 1. Проверка баланса с блокировкой строки
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 	var current, withdrawn float64
 	err = tx.QueryRowContext(ctx, `
 		SELECT current_balance, withdrawn_balance
@@ -188,10 +157,6 @@ func (r *BalanceDb) Withdraw(ctx context.Context, userID int64, order string, su
 		return model.ErrorInsufficientFunds
 	}
 
-<<<<<<< HEAD
-=======
-	// 2. Обновляем баланс
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 	current -= float64(sum)
 	withdrawn += float64(sum)
 
@@ -217,22 +182,13 @@ func (r *BalanceDb) Withdraw(ctx context.Context, userID int64, order string, su
 		}
 	}
 
-<<<<<<< HEAD
 	_, err = tx.ExecContext(ctx, `
 		INSERT INTO withdrawals (user_id, order_number, amount, processed_at)
 		VALUES ($1, $2, $3, $4)`, userID, order, float64(sum), time.Now())
-=======
-	// 3. Создаём запись о списании
-	_, err = tx.ExecContext(ctx, `
-		INSERT INTO withdrawals (user_id, order_number, amount, processed_at)
-		VALUES ($1, $2, $3, $4)`,
-		userID, order, float64(sum), time.Now().Format(time.RFC3339))
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 	if err != nil {
 		return err
 	}
 
-<<<<<<< HEAD
 	err = tx.Commit()
 	return err
 }
@@ -242,7 +198,3 @@ func (r *BalanceDb) Withdraw(ctx context.Context, userID int64, order string, su
 
 
 
-=======
-	return tx.Commit()
-}
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53

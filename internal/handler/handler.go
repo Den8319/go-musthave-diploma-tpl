@@ -8,10 +8,6 @@ import (
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/auth"
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/repository"
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/service"
-<<<<<<< HEAD
-
-=======
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 	"github.com/rs/zerolog/log"
 )
 
@@ -20,16 +16,9 @@ type Server struct {
 	UserService    *service.UserService
 	OrderService   *service.OrderService
 	BalanceService *service.BalanceService
-<<<<<<< HEAD
 	cancelPoolling context.CancelFunc
 }
 
-=======
-	cancelPolling  context.CancelFunc
-}
-
-// New создаёт новый сервер и запускает фоновый процесс опроса начислений
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 func New(db *repository.DB, accrualAddress string) (*Server, error) {
 	userRepo := repository.NewUserRepository(db)
 	orderRepo := repository.NewOrderRepository(db)
@@ -48,7 +37,6 @@ func New(db *repository.DB, accrualAddress string) (*Server, error) {
 
 	mux.registerHandlers()
 
-<<<<<<< HEAD
 	ctx, cancel := context.WithCancel(context.Background())
 	mux.cancelPoolling = cancel
 	go func() {
@@ -56,21 +44,10 @@ func New(db *repository.DB, accrualAddress string) (*Server, error) {
 	}()
 
 	log.Info().Msg("Фоновый процесс опроса начисленний запущен")
-=======
-	// Запускаем фоновый процесс опроса статусов заказов
-	ctx, cancel := context.WithCancel(context.Background())
-	mux.cancelPolling = cancel
-	go func() {
-		orderService.StartAccrualPolling(ctx, 10*time.Second)
-	}()
-
-	log.Info().Msg("Фоновый процесс опроса начислений запущен")
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 
 	return mux, nil
 }
 
-<<<<<<< HEAD
 // Останавливает фоновый polling
 func (s *Server) Shutdown() {
 	if s.cancelPoolling != nil {
@@ -79,15 +56,6 @@ func (s *Server) Shutdown() {
 }
 
 
-=======
-// Shutdown останавливает фоновый polling и освобождает ресурсы
-func (s *Server) Shutdown() {
-	if s.cancelPolling != nil {
-		s.cancelPolling()
-	}
-}
-
->>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 func (s *Server) registerHandlers() {
 	s.HandleFunc("/api/user/register", s.RegisterHandler)
 	s.HandleFunc("/api/user/login", s.LoginHandler)
