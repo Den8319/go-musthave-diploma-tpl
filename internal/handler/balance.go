@@ -66,7 +66,7 @@ func (s *Server) WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := s.BalanceService.Withdraw(r.Context(), userID, req.Order, req.Sum)
 	if err != nil {
-		log.Err(err).Int64("user_id", userID).Int("sum", req.Sum).Msg("Ошибка списания средств")
+		log.Err(err).Int64("user_id", userID).Float64("sum", req.Sum).Msg("Ошибка списания средств")
 		switch {
 		case errors.Is(err, model.ErrorInsufficientFunds):
 			http.Error(w, "Недостаточно средств на счету", http.StatusPaymentRequired)

@@ -125,7 +125,7 @@ func (r *BalanceDb) GetWithdrawalsByUserID(ctx context.Context, userID int64) ([
 	return withdrawals, nil
 }
 
-func (r *BalanceDb) Withdraw(ctx context.Context, userID int64, order string, sum int) error {
+func (r *BalanceDb) Withdraw(ctx context.Context, userID int64, order string, sum float64) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err

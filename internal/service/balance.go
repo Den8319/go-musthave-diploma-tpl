@@ -26,7 +26,7 @@ func (s *BalanceService) GetBalance(ctx context.Context, userID int64) (*model.B
 	return balance, nil
 }
 
-func (s *BalanceService) Withdraw(ctx context.Context, userID int64, order string, sum int) error {
+func (s *BalanceService) Withdraw(ctx context.Context, userID int64, order string, sum float64) error {
 
 	_=time.Now()
 	return s.balanceRepo.Withdraw(ctx, userID, order, sum)
