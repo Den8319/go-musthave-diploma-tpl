@@ -9,7 +9,10 @@ import (
 
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/model"
 	"github.com/Den8319/go-musthave-diploma-tpl/pkg/luhn"
+<<<<<<< HEAD
 
+=======
+>>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 )
 
 // GetBalanceHandler обрабатывает GET /api/user/balance
@@ -51,11 +54,18 @@ func (s *Server) WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+<<<<<<< HEAD
 	// Проверка валидности номера заказа по алгоритму Луна
 	if !luhn.Valid(req.Order) {
 		log.Warn().Str("order", req.Order).Msg("Неверный номер заказа (не прошёл проверку Luhn)")
 		http.Error(w, "Неверный номер заказа", http.StatusUnprocessableEntity)
 		return // ← это было упущено!
+=======
+	// Проверка номера заказа по алгоритму Луна
+	if !luhn.Valid(req.Order) {
+		http.Error(w, "Неверный номер заказа", http.StatusUnprocessableEntity)
+		return
+>>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 	}
 
 	userID, ok := r.Context().Value("user_id").(int64)

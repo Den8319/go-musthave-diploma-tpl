@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/model"
 )
@@ -27,8 +26,13 @@ func (s *BalanceService) GetBalance(ctx context.Context, userID int64) (*model.B
 }
 
 func (s *BalanceService) Withdraw(ctx context.Context, userID int64, order string, sum int) error {
+<<<<<<< HEAD
 
 	_=time.Now()
+=======
+	// Атомарное списание через репозиторий (в одной транзакции БД с FOR UPDATE)
+	_ = time.Now() // сохранено для совместимости
+>>>>>>> 2b1a5516c0a0d0c48d0447c35020101ddd378b53
 	return s.balanceRepo.Withdraw(ctx, userID, order, sum)
 }
 

@@ -19,13 +19,13 @@ import (
 )
 
 func main() {
-	
+
 	auth.Init("SECRET_KEY")
 
-	
+
 	cfg := config.New()
 
-	
+
 	logger.InitLogger(cfg.LogLevel)
 
 	var db *repository.DB
