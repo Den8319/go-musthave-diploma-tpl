@@ -17,14 +17,16 @@ import (
 type OrderService struct {
 	OrderRepo model.OrderRepository
 	UserRepo  model.UserRepository
+	BalanceRepo model.BalanceRepository
 	accrualClient *accrual.Client
 }
 
  
-func NewOrderService(orderRepo model.OrderRepository, userRepo model.UserRepository, accrualURL string) *OrderService {
+func NewOrderService(orderRepo model.OrderRepository, userRepo model.UserRepository,BalanceRepo model.BalanceRepository, accrualURL string) *OrderService {
 	return &OrderService{
 		OrderRepo: orderRepo, 
 		UserRepo: userRepo,
+		BalanceRepo: BalanceRepo,
 		accrualClient: accrual.NewClient(accrualURL),
 	}
 }
@@ -136,25 +138,34 @@ func (s *OrderService) pollAccrualStatuses(ctx context.Context) {
 			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "REGISTERED",accrualResult.Accural)
 			if err != nil {
 				log.Err(err).Str("order", order.OrderNumber).Msg("Ошибка обновления статуса заказа")
+				continue
 				}
 		case "PROCESSING":
 			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "PROCESSING",accrualResult.Accural)
 			if err != nil {
 				log.Err(err).Str("order", order.OrderNumber).Msg("Ошибка обновления статуса заказа")
+				continue
 				}
 			log.Info().Str("order", order.OrderNumber).Float64("accrual", accrualResult.Accural).Msg("Начислено баллов")	
 		case "PROCESSED":
 			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "PROCESSED",accrualResult.Accural)
 			if err != nil {
 				log.Err(err).Str("order", order.OrderNumber).Msg("Ошибка обновления статуса заказа")
+				continue
+				}
+				if err := s.BalanceRepo.UpdateBalance(ctx, order.UserID,accrualResult.Accural); err != nil {
+					log.Err(err).Str("order", order.OrderNumber).Float64("accrual", accrualResult.Accural).Msg("Ошибка начисления баллов")	
+				continue
 				}
 		case "INVALID":
 			err := s.OrderRepo.UpdateStatus(ctx, order.OrderNumber, "INVALID",accrualResult.Accural)
 			if err != nil {
 				log.Err(err).Str("order", order.OrderNumber).Msg("Ошибка обновления статуса заказа")
+				continue
 				}
 		default:
 			log.Err(err).Str("status", accrualResult.Status).Str("order", order.OrderNumber).Msg("Неизвестный статус заказа")
+			continue
 			}
 		}
 	}

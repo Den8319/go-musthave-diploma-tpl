@@ -25,7 +25,7 @@ func New(db *repository.DB, accrualAddress string) (*Server, error) {
 	balanceRepo := repository.NewBalanceRepository(db)
 
 	userService := service.NewUserService(userRepo)
-	orderService := service.NewOrderService(orderRepo, userRepo, accrualAddress)
+	orderService := service.NewOrderService(orderRepo, userRepo,balanceRepo, accrualAddress)
 	balanceService := service.NewBalanceService(balanceRepo, userRepo)
 
 	mux := &Server{
