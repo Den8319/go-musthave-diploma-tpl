@@ -113,7 +113,7 @@ func (r *BalanceDb) GetWithdrawalsByUserID(ctx context.Context, userID int64) ([
 			return nil, err
 		}
 		if amount.Valid {
-			withdrawal.Sum = int(amount.Float64)
+			withdrawal.Sum = amount.Float64
 		}
 		withdrawals = append(withdrawals, withdrawal)
 	}
