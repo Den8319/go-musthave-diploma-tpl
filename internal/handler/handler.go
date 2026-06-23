@@ -1,8 +1,9 @@
 package handler
 
 import (
+	"context"
 	"net/http"
-	
+
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/auth"
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/repository"
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/service"
@@ -40,33 +41,94 @@ func (s *Server) registerHandlers() {
 	s.HandleFunc("/api/user/register", s.RegisterHandler)
 	s.HandleFunc("/api/user/login", s.LoginHandler)
 
-	authMiddleware := auth.AuthMiddlewareWithRepo(repository.NewUserRepository(nil))
+	// Оборачиваем защищённые хендлеры в middleware аутентификации
+	// Передаём UserService, который уже имеет доступ к БД через репозиторий
+	authHandler := func(next http.HandlerFunc) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			// Получаем токен из заголовка Authorization
+			authHeader := r.Header.Get("Authorization")
+			if authHeader == "" {
+				http.Error(w, "Пользователь не аутентифицирован", http.StatusUnauthorized)
+				return
+			}
+
+			tokenString := authHeader
+			if len(tokenString) > 7 && tokenString[:7] == "Bearer " {
+				tokenString = tokenString[7:]
+			}
+
+			// Проверяем и парсим JWT токен
+			userID, login, err := auth.GetUser(r.Context(), tokenString)
+			if err != nil {
+				http.Error(w, "Пользователь не аутентифицирован", http.StatusUnauthorized)
+				return
+			}
+
+			// Если userID равен 0, пытаемся получить по логину
+			if userID == 0 && login != "" {
+				user, err := s.UserService.GetUserByLogin(r.Context(), login)
+				if err != nil {
+					http.Error(w, "Пользователь не найден", http.StatusUnauthorized)
+					return
+				}
+				userID = user.ID
+			}
+
+			// Сохраняем userID в контекст
+			ctx := context.WithValue(r.Context(), "user_id", userID)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		}
+	}
 
 	// Единый хендлер для /api/user/orders — диспатчим по HTTP-методу
 	s.HandleFunc("/api/user/orders", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
-			authMiddleware(http.HandlerFunc(s.UploadOrderHandler)).ServeHTTP(w, r)
+			authHandler(s.UploadOrderHandler).ServeHTTP(w, r)
 		case http.MethodGet:
-			authMiddleware(http.HandlerFunc(s.GetOrdersHandler)).ServeHTTP(w, r)
+			authHandler(s.GetOrdersHandler).ServeHTTP(w, r)
 		default:
 			http.Error(w, "Метод не разрешён", http.StatusMethodNotAllowed)
 		}
 	})
 
-	s.HandleFunc("/api/user/balance", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authMiddleware(http.HandlerFunc(s.GetBalanceHandler)).ServeHTTP(w, r)
-	}))
+	s.HandleFunc("/api/user/balance", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Метод не разрешён", http.StatusMethodNotAllowed)
+			return
+		}
+		authHandler(s.GetBalanceHandler).ServeHTTP(w, r)
+	})
 
-	s.HandleFunc("/api/user/balance/withdraw", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authMiddleware(http.HandlerFunc(s.WithdrawHandler)).ServeHTTP(w, r)
-	}))
+	s.HandleFunc("/api/user/balance/withdraw", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "Метод не разрешён", http.StatusMethodNotAllowed)
+			return
+		}
+		authHandler(s.WithdrawHandler).ServeHTTP(w, r)
+	})
 
-	s.HandleFunc("/api/user/withdrawals", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authMiddleware(http.HandlerFunc(s.GetWithdrawalsHandler)).ServeHTTP(w, r)
-	}))
+	s.HandleFunc("/api/user/withdrawals", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Метод не разрешён", http.StatusMethodNotAllowed)
+			return
+		}
+		authHandler(s.GetWithdrawalsHandler).ServeHTTP(w, r)
+	})
 }
 
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+
+ 
+
+ 
  
  
  
