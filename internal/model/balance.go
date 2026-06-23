@@ -17,12 +17,12 @@ type WithdrawRequest struct {
 
 type WithdrawResponse struct {
 	Order string `json:"order"`
-	Sum   int    `json:"sum"`
+	Sum   float64    `json:"sum"`
 }
 
 type Withdrawal struct {
 	Order       string  `json:"order"`
-	Sum         int     `json:"sum"`
+	Sum         float64     `json:"sum"`
 	ProcessedAt string  `json:"processed_at"`
 	UserID      int64   `json:"-"`
 	ID          int64   `json:"-"`
