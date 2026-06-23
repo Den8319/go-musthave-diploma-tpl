@@ -104,3 +104,59 @@ func (r *OrderDb) GetByUserID(ctx context.Context, userID int64) ([]*model.Order
 
 	return orders, nil
 }
+
+func (r *OrderDb) GetByStatus(ctx context.Context, statuses ...string) ([]*model.Order, error) {
+	
+	if len(statuses) == 0 {
+		return nil, nil
+	}
+
+	query := `SELECT id, user_id, order_number, status, accrual, uploaded_at
+		FROM orders
+		WHERE status = ANY($1)
+		ORDER BY uploaded_at ASC`
+
+	rows, err := r.db.QueryContext(ctx, query, statuses)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var orders []*model.Order
+	for rows.Next() {
+		order := &model.Order{}
+		err := rows.Scan(
+			&order.ID,
+			&order.UserID,
+			&order.OrderNumber,
+			&order.Status,
+			&order.Accrual,
+			&order.UploadedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		orders = append(orders, order)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return orders, nil
+}
+
+func (r *OrderDb) UpdateStatus(ctx context.Context, orderNumber string, status string, accrual float64) error {
+	query := `
+		UPDATE orders
+		SET status = $1, accrual = $2
+		WHERE order_number = $3
+	`
+	_, err := r.db.ExecContext(ctx, query, status, accrual, orderNumber)
+	return err
+}
+
+
+
+			
+

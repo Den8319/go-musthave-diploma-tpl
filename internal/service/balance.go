@@ -27,37 +27,9 @@ func (s *BalanceService) GetBalance(ctx context.Context, userID int64) (*model.B
 }
 
 func (s *BalanceService) Withdraw(ctx context.Context, userID int64, order string, sum int) error {
-	// Получаем текущий баланс
-	balance, err := s.balanceRepo.GetBalance(ctx, userID)
-	if err != nil {
-		return fmt.Errorf("ошибка при получении баланса: %w", err)
-	}
 
-	// Проверяем, достаточно ли средств
-	if balance.Current < float64(sum) {
-		return model.ErrorInsufficientFunds
-	}
-
-	// Обновляем баланс
-	err = s.balanceRepo.UpdateBalance(ctx, userID, float64(-sum))
-	if err != nil {
-		return fmt.Errorf("ошибка при обновлении баланса: %w", err)
-	}
-
-	// Создаем запись о списании
-	withdrawal := &model.Withdrawal{
-		UserID:      userID,
-		Order:       order,
-		Sum:         sum,
-		ProcessedAt: time.Now().Format(time.RFC3339),
-	}
-
-	err = s.balanceRepo.CreateWithdrawal(ctx, withdrawal)
-	if err != nil {
-		return fmt.Errorf("ошибка при создании записи о списании: %w", err)
-	}
-
-	return nil
+	_=time.Now()
+	return s.balanceRepo.Withdraw(ctx, userID, order, sum)
 }
 
 func (s *BalanceService) GetWithdrawals(ctx context.Context, userID int64) ([]*model.Withdrawal, error) {

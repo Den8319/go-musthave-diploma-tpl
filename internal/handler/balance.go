@@ -8,6 +8,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/model"
+	"github.com/Den8319/go-musthave-diploma-tpl/pkg/luhn"
+
 )
 
 // GetBalanceHandler обрабатывает GET /api/user/balance
@@ -35,7 +37,6 @@ func (s *Server) GetBalanceHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(balance)
 }
-
 // WithdrawHandler обрабатывает POST /api/user/balance/withdraw
 func (s *Server) WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -48,6 +49,13 @@ func (s *Server) WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 		log.Err(err).Msg("Ошибка при декодировании запроса списания")
 		http.Error(w, "Неверный формат запроса", http.StatusBadRequest)
 		return
+	}
+
+	// Проверка валидности номера заказа по алгоритму Луна
+	if !luhn.Valid(req.Order) {
+		log.Warn().Str("order", req.Order).Msg("Неверный номер заказа (не прошёл проверку Luhn)")
+		http.Error(w, "Неверный номер заказа", http.StatusUnprocessableEntity)
+		return // ← это было упущено!
 	}
 
 	userID, ok := r.Context().Value("user_id").(int64)
@@ -77,33 +85,32 @@ func (s *Server) WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// GetWithdrawalsHandler обрабатывает GET /api/user/withdrawals
 func (s *Server) GetWithdrawalsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Метод не разрешён", http.StatusMethodNotAllowed)
 		return
-	}
+		}
 
 	userID, ok := r.Context().Value("user_id").(int64)
-	if !ok {
-		log.Warn().Msg("Отсутствует userID в контексте")
-		http.Error(w, "Пользователь не аутентифицирован", http.StatusUnauthorized)
-		return
-	}
+		if !ok {
+			log.Warn().Msg("Отсутствует userID в контексте")
+			http.Error(w, "Пользователь не аутентифицирован", http.StatusUnauthorized)
+			return
+		}
 
-	withdrawals, err := s.BalanceService.GetWithdrawals(r.Context(), userID)
-	if err != nil {
-		log.Err(err).Int64("user_id", userID).Msg("Ошибка получения списаний")
-		http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
-		return
-	}
+	withdraws, err := s.BalanceService.GetWithdrawals(r.Context(), userID)
+		if err != nil {
+			log.Err(err).Int64("user_id", userID).Msg("Ошибка получения списаний")
+			http.Error(w, "Внутренняя ошибка сервера", http.StatusInternalServerError)
+			return
+			}
+	
+			if len(withdraws) == 0 {
+				http.Error(w, "Списаний не найдено", http.StatusNoContent)
+				return
+			}
 
-	if len(withdrawals) == 0 {
-		w.WriteHeader(http.StatusNoContent)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(withdrawals)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(withdraws)
 }

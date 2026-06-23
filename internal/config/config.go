@@ -25,7 +25,7 @@ const (
 
 	envAccuralSystemAddress = "ACCRUAL_SYSTEM_ADDRESS"
 	flagAccuralSystemAddress = "r"
-	AccuralSystemAddress = "http://localhost:8080"
+	defaultAccuralSystemAddress = "http://localhost:8080"
 
 )
 
@@ -51,7 +51,7 @@ func New() *Config {
 	logLevel := flag.String(flagLogLevel, defaultLogLevel, "")
 	databaseDSN := flag.String(flagDatabaseDSN, defaultDatabaseDSN, "")
 	secretKey := flag.String(flagSecretKey, defaultSecretKey, "")
-	accuralSystemAddress := flag.String(flagAccuralSystemAddress, defaultSecretKey, "")
+	accuralSystemAddress := flag.String(flagAccuralSystemAddress, defaultAccuralSystemAddress, "")
 
 	flag.Parse()
 

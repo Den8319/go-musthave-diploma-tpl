@@ -1,7 +1,12 @@
 package main
 
 import (
+	"context"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/rs/zerolog/log"
 
@@ -41,7 +46,7 @@ func main() {
 		log.Fatal().Err(err).Msg("Ошибка применения миграций")
 	}
 
-	server, err := handler.New(db)
+	server, err := handler.New(db,cfg.AccuralSystemAddress)
 	if err != nil {
 		log.Fatal().Err(err).Msg("incorrect server")
 		return
@@ -49,11 +54,33 @@ func main() {
 
 	
 	wrappedHandler := logger.WithLogging(compress.WithCompression(server))
-
-	
-	addr := cfg.ServerAddress
-	log.Info().Str("address", addr).Msg("Запуск сервера")
-	if err := http.ListenAndServe(addr, wrappedHandler); err != nil {
-		log.Fatal().Err(err).Msg("Ошибка при запуске сервера")
+	 
+	httpServer := &http.Server{
+		Addr:    cfg.ServerAddress,
+		Handler: wrappedHandler,
 	}
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+
+	go func() {
+		log.Info().Str("address", cfg.ServerAddress).Msg("Запуск сервера")
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal().Err(err).Msg("Ошибка запуска сервера")
+		}
+	}()
+	
+	sig := <-quit
+	log.Info().Str("signal", sig.String()).Msg("Получен сигнал для завершения работы сервера")
+
+	server.Shutdown()
+
+	shutdownCtx, shutdowncancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdowncancel()
+
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		log.Fatal().Err(err).Msg("Ошибка при завершении работы сервера")
+		}
+	log.Info().Msg("Сервер успешно остановлен")
+	
 }

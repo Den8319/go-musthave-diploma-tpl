@@ -33,6 +33,8 @@ type BalanceRepository interface {
 	UpdateBalance(ctx context.Context, userID int64, amount float64) error
 	CreateWithdrawal(ctx context.Context, withdrawal *Withdrawal) error
 	GetWithdrawalsByUserID(ctx context.Context, userID int64) ([]*Withdrawal, error)
+	// Выполняет проверку баланса + списание + создание записи в одной транзакции
+	Withdraw(ctx context.Context, userID int64, order string, sum int) error
 }
 
 var ErrorInsufficientFunds = errors.New("недостаточно средств на счету")

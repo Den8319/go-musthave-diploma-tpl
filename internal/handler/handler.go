@@ -3,10 +3,13 @@ package handler
 import (
 	"context"
 	"net/http"
+	"time"
 
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/auth"
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/repository"
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/service"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Server struct {
@@ -14,15 +17,16 @@ type Server struct {
 	UserService    *service.UserService
 	OrderService   *service.OrderService
 	BalanceService *service.BalanceService
+	cancelPoolling context.CancelFunc
 }
 
-func New(db *repository.DB) (*Server, error) {
+func New(db *repository.DB, accrualAddress string) (*Server, error) {
 	userRepo := repository.NewUserRepository(db)
 	orderRepo := repository.NewOrderRepository(db)
 	balanceRepo := repository.NewBalanceRepository(db)
 
 	userService := service.NewUserService(userRepo)
-	orderService := service.NewOrderService(orderRepo, userRepo)
+	orderService := service.NewOrderService(orderRepo, userRepo, accrualAddress)
 	balanceService := service.NewBalanceService(balanceRepo, userRepo)
 
 	mux := &Server{
@@ -34,8 +38,24 @@ func New(db *repository.DB) (*Server, error) {
 
 	mux.registerHandlers()
 
+	ctx, cancel := context.WithCancel(context.Background())
+	mux.cancelPoolling = cancel
+	go func() {
+		orderService.StartAccrualPolling (ctx, 10*time.Second) // Периодичность опроса
+	}()
+
+	log.Info().Msg("Фоновый процесс опроса начисленний запущен")
+
 	return mux, nil
 }
+
+// Останавливает фоновый polling
+func (s *Server) Shutdown() {
+	if s.cancelPoolling != nil {
+		s.cancelPoolling()
+	}
+}
+
 
 func (s *Server) registerHandlers() {
 	s.HandleFunc("/api/user/register", s.RegisterHandler)

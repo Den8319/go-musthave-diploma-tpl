@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"time"
 
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/model"
 )
@@ -17,7 +19,7 @@ func NewBalanceRepository(db *DB) *BalanceDb {
 
 func (r *BalanceDb) GetBalance(ctx context.Context, userID int64) (*model.Balance, error) {
 	query := `
-		SELECT user_id, current_balance, withdrawn_balance
+		SELECT  current_balance, withdrawn_balance
 		FROM balances
 		WHERE user_id = $1
 	`
@@ -29,7 +31,7 @@ func (r *BalanceDb) GetBalance(ctx context.Context, userID int64) (*model.Balanc
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			// Если баланса нет, создаем новый с нулевым балансом
+		
 			return &model.Balance{Current: 0, Withdrawn: 0}, nil
 		}
 		return nil, err
@@ -56,7 +58,7 @@ func (r *BalanceDb) UpdateBalance(ctx context.Context, userID int64, amount floa
 	}
 
 	if rowsAffected == 0 {
-		// Если баланса нет, создаем новый
+		
 		query = `
 			INSERT INTO balances (user_id, current_balance, withdrawn_balance)
 			VALUES ($1, $2, 0)
@@ -75,7 +77,12 @@ func (r *BalanceDb) CreateWithdrawal(ctx context.Context, withdrawal *model.With
 		RETURNING id
 	`
 
-	err := r.db.QueryRowContext(ctx, query, withdrawal.UserID, withdrawal.Order, float64(withdrawal.Sum), withdrawal.ProcessedAt).Scan(&withdrawal.ID)
+	err := r.db.QueryRowContext(ctx, query,
+		 withdrawal.UserID,
+		 withdrawal.Order,
+		 float64(withdrawal.Sum),
+		 withdrawal.ProcessedAt,
+		 ).Scan(&withdrawal.ID)
 	if err != nil {
 		return err
 	}
@@ -117,3 +124,77 @@ func (r *BalanceDb) GetWithdrawalsByUserID(ctx context.Context, userID int64) ([
 
 	return withdrawals, nil
 }
+
+func (r *BalanceDb) Withdraw(ctx context.Context, userID int64, order string, sum int) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+		}
+	}()
+
+	var current, withdrawn float64
+	err = tx.QueryRowContext(ctx, `
+		SELECT current_balance, withdrawn_balance
+		FROM balances
+		WHERE user_id = $1
+		FOR UPDATE`, userID,
+	).Scan(&current, &withdrawn)
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+
+	if errors.Is(err, sql.ErrNoRows) {
+		current = 0
+		withdrawn = 0
+	}
+
+	if current < float64(sum) {
+		return model.ErrorInsufficientFunds
+	}
+
+	current -= float64(sum)
+	withdrawn += float64(sum)
+
+	result, err := tx.ExecContext(ctx, `
+		UPDATE balances
+		SET current_balance = $1, withdrawn_balance = $2
+		WHERE user_id = $3`, current, withdrawn, userID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		_, err = tx.ExecContext(ctx, `
+			INSERT INTO balances (user_id, current_balance, withdrawn_balance)
+			VALUES ($1, $2, $3)`, userID, current, withdrawn)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO withdrawals (user_id, order_number, amount, processed_at)
+		VALUES ($1, $2, $3, $4)`, userID, order, float64(sum), time.Now())
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	return err
+}
+
+
+		
+
+
+
