@@ -26,9 +26,7 @@ func (s *UserService) Register(ctx context.Context, req *model.RegisterRequest) 
 		return nil, errors.New("login и password обязательны")
 	}
 
-	if len(req.Password) < 8 {
-    return nil, errors.New("password must be at least 8 characters")
-	}
+	
 
 	// Хеширование пароля
 	hash, err := auth.HashPassword(req.Password)

@@ -3,9 +3,6 @@ package main
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	
-
 	"github.com/rs/zerolog/log"
 
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/auth"
@@ -51,34 +48,12 @@ func main() {
 	}
 
 	
-	userHandler := &handler.User{Server: server}
-	ordersHandler := &handler.Orders{Server: server}
-
-	
-	userRepo := repository.NewUserRepository(db)
-
-	
-	router := chi.NewRouter()
-
-	
-	router.Use(logger.WithLogging)
-	router.Use(compress.WithCompression)
-
-	
-	router.Post("/api/user/register", userHandler.RegisterHandler)
-	router.Post("/api/user/login", userHandler.LoginHandler)
-
-	
-	authMiddleware := auth.AuthMiddlewareWithRepo(userRepo)
-
-	
-	router.With(authMiddleware).Post("/api/user/orders", ordersHandler.UploadOrderHandler)
-	router.With(authMiddleware).Get("/api/user/orders", ordersHandler.GetOrdersHandler)
+	wrappedHandler := logger.WithLogging(compress.WithCompression(server))
 
 	
 	addr := cfg.ServerAddress
 	log.Info().Str("address", addr).Msg("Запуск сервера")
-	if err := http.ListenAndServe(addr, router); err != nil {
+	if err := http.ListenAndServe(addr, wrappedHandler); err != nil {
 		log.Fatal().Err(err).Msg("Ошибка при запуске сервера")
 	}
 }
