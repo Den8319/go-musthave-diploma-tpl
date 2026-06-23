@@ -8,6 +8,7 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/model"
+	"github.com/Den8319/go-musthave-diploma-tpl/pkg/luhn"
 )
 
 // GetBalanceHandler обрабатывает GET /api/user/balance
@@ -47,6 +48,12 @@ func (s *Server) WithdrawHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		log.Err(err).Msg("Ошибка при декодировании запроса списания")
 		http.Error(w, "Неверный формат запроса", http.StatusBadRequest)
+		return
+	}
+
+	// Проверка номера заказа по алгоритму Луна
+	if !luhn.Valid(req.Order) {
+		http.Error(w, "Неверный номер заказа", http.StatusUnprocessableEntity)
 		return
 	}
 

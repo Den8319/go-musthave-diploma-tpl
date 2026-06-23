@@ -18,6 +18,8 @@ type OrderRepository interface {
 	Create(ctx context.Context, order *Order) error
 	GetByOrderNumber(ctx context.Context, orderNumber string) (*Order, error)
 	GetByUserID(ctx context.Context, userID int64) ([]*Order, error)
+	GetByStatus(ctx context.Context, statuses ...string) ([]*Order, error)
+	UpdateStatus(ctx context.Context, orderNumber string, status string, accrual float64) error
 }
 
 var ErrorOrderExists = errors.New("заказ уже загружен")

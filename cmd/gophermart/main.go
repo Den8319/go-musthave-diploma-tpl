@@ -1,7 +1,12 @@
 package main
 
 import (
+	"context"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/rs/zerolog/log"
 
@@ -14,13 +19,13 @@ import (
 )
 
 func main() {
-	
+
 	auth.Init("SECRET_KEY")
 
-	
+
 	cfg := config.New()
 
-	
+
 	logger.InitLogger(cfg.LogLevel)
 
 	var db *repository.DB
@@ -41,19 +46,47 @@ func main() {
 		log.Fatal().Err(err).Msg("Ошибка применения миграций")
 	}
 
-	server, err := handler.New(db)
+	srv, err := handler.New(db, cfg.AccuralSystemAddress)
 	if err != nil {
 		log.Fatal().Err(err).Msg("incorrect server")
 		return
 	}
 
-	
-	wrappedHandler := logger.WithLogging(compress.WithCompression(server))
 
-	
-	addr := cfg.ServerAddress
-	log.Info().Str("address", addr).Msg("Запуск сервера")
-	if err := http.ListenAndServe(addr, wrappedHandler); err != nil {
-		log.Fatal().Err(err).Msg("Ошибка при запуске сервера")
+	wrappedHandler := logger.WithLogging(compress.WithCompression(srv))
+
+
+	httpServer := &http.Server{
+		Addr:    cfg.ServerAddress,
+		Handler: wrappedHandler,
 	}
+
+	// Канал для сигналов ОС
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	// Запускаем сервер в фоновой горутине
+	go func() {
+		log.Info().Str("address", cfg.ServerAddress).Msg("Запуск сервера")
+		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal().Err(err).Msg("Ошибка при запуске сервера")
+		}
+	}()
+
+	// Ожидаем сигнал завершения
+	sig := <-quit
+	log.Info().Str("signal", sig.String()).Msg("Получен сигнал завершения, начинаем graceful shutdown")
+
+	// Отменяем фоновый polling
+	srv.Shutdown()
+
+	// Даём серверу 30 секунд на завершение активных запросов
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer shutdownCancel()
+
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		log.Fatal().Err(err).Msg("Ошибка при graceful shutdown сервера")
+	}
+
+	log.Info().Msg("Сервер успешно завершил работу")
 }
