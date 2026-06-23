@@ -101,7 +101,7 @@ func (s *OrderService) StartAccrualPolling(ctx context.Context, interval time.Du
 
 func (s *OrderService) pollAccrualStatuses(ctx context.Context) {
 
-	orders, err := s.OrderRepo.GetByStatus(ctx, "NEW", "PROGRESSING")
+	orders, err := s.OrderRepo.GetByStatus(ctx, "NEW", "PROCESSING")
 	if err != nil {
 		log.Err(err).Msg("Ошибка получения заказов для опроса")
 		return
