@@ -22,15 +22,7 @@ type Server struct {
 
 func New(db *repository.DB, accrualAddress string) (*Server, error) {
 
-    if db == nil {
-        return nil, errors.New("database is not define")
-    }
-    
-    
-    if accrualAddress == "" {
-        return nil, errors.New("accrual system URL is empty")
-    }
-
+     
 	userRepo := repository.NewUserRepository(db)
 	orderRepo := repository.NewOrderRepository(db)
 	balanceRepo := repository.NewBalanceRepository(db)
