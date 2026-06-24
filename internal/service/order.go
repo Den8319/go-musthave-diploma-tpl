@@ -18,9 +18,9 @@ type AccrualClient interface {
 }
 
 type OrderService struct {
-	OrderRepo   model.OrderRepository
-	UserRepo    model.UserRepository
-	BalanceRepo model.BalanceRepository
+	OrderRepo     model.OrderRepository
+	UserRepo      model.UserRepository
+	BalanceRepo   model.BalanceRepository
 	accrualClient AccrualClient
 }
 
@@ -58,7 +58,7 @@ func (s *OrderService) UploadOrder(ctx context.Context, userID int64, orderNumbe
 
 	// Проверка, загружен ли заказ другим пользователем
 	existingOrder, err := s.OrderRepo.GetByOrderNumber(ctx, orderNumber)
-	if err != nil && !errors.Is(err, model.ErrorNotFound) {
+	if err != nil && !errors.Is(err, model.ErrorOrderNotFound) {
 		return 0, err
 	}
 

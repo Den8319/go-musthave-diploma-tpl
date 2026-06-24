@@ -10,7 +10,7 @@ func Valid(s string) bool {
 	sum := 0
 	n := len(s)
 
-	for i := range n {
+	for i := 0; i < n; i++ {
 		 
 		if s[i] < '0' || s[i] > '9' {
 			return false

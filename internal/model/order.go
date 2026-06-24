@@ -23,3 +23,4 @@ type OrderRepository interface {
 }
 
 var ErrorOrderExists = errors.New("заказ уже загружен")
+var ErrorOrderNotFound = errors.New("заказ не найден")
