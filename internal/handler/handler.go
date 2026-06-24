@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"time"
-	"errors"
 
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/auth"
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/repository"
