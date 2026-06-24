@@ -23,9 +23,9 @@ const (
 	flagSecretKey    = "k"
 	defaultSecretKey = "123"
 
-	envAccuralSystemAddress = "ACCRUAL_SYSTEM_ADDRESS"
-	flagAccuralSystemAddress = "r"
-	defaultAccuralSystemAddress = "http://localhost:8080"
+	envAccrualSystemAddress = "ACCRUAL_SYSTEM_ADDRESS"
+	flagAccrualSystemAddress = "r"
+	defaultAccrualSystemAddress = "http://localhost:8080"
 
 )
 
@@ -35,7 +35,7 @@ type Config struct {
 	LogLevel        string
 	DatabaseDSN     string
 	SecretKey       string
-	AccuralSystemAddress  string
+	AccrualSystemAddress  string
 }
 
 func getParam(envName, flagValue string) string {
@@ -51,7 +51,7 @@ func New() *Config {
 	logLevel := flag.String(flagLogLevel, defaultLogLevel, "")
 	databaseDSN := flag.String(flagDatabaseDSN, defaultDatabaseDSN, "")
 	secretKey := flag.String(flagSecretKey, defaultSecretKey, "")
-	accuralSystemAddress := flag.String(flagAccuralSystemAddress, defaultAccuralSystemAddress, "")
+	AccrualSystemAddress := flag.String(flagAccrualSystemAddress, defaultAccrualSystemAddress, "")
 
 	flag.Parse()
 
@@ -60,7 +60,7 @@ func New() *Config {
 		LogLevel:        getParam(envLogLevel, *logLevel),
 		DatabaseDSN:     getParam(envDatabaseDSN, *databaseDSN),
 		SecretKey:       getParam(envSecretKey, *secretKey),
-		AccuralSystemAddress:   getParam(envAccuralSystemAddress, *accuralSystemAddress),
+		AccrualSystemAddress:   getParam(envAccrualSystemAddress, *AccrualSystemAddress),
 	}
 
 	return cfg

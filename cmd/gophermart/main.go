@@ -46,7 +46,7 @@ func main() {
 		log.Fatal().Err(err).Msg("Ошибка применения миграций")
 	}
 
-	server, err := handler.New(db,cfg.AccuralSystemAddress)
+	server, err := handler.New(db,cfg.AccrualSystemAddress)
 	if err != nil {
 		log.Fatal().Err(err).Msg("incorrect server")
 		return
