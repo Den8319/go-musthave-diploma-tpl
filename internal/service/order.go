@@ -58,7 +58,7 @@ func (s *OrderService) UploadOrder(ctx context.Context, userID int64, orderNumbe
 
 	// Проверка, загружен ли заказ другим пользователем
 	existingOrder, err := s.OrderRepo.GetByOrderNumber(ctx, orderNumber)
-	if err != nil && !errors.Is(err, model.ErrorOrderNotFound) {
+	if err != nil && !errors.Is(err, model.ErrorNotFound) {
 		return 0, err
 	}
 
