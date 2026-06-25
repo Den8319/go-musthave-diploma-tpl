@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"os"
+	"crypto/rand"
 )
 
 const (
@@ -21,7 +22,7 @@ const (
 
 	envSecretKey     = "SECRET_KEY"
 	flagSecretKey    = "k"
-	defaultSecretKey = "123"
+	
 
 	envAccrualSystemAddress = "ACCRUAL_SYSTEM_ADDRESS"
 	flagAccrualSystemAddress = "r"
@@ -50,7 +51,7 @@ func New() *Config {
 	serverAddr := flag.String(flagServerAddress, defaultServerAddress, "")
 	logLevel := flag.String(flagLogLevel, defaultLogLevel, "")
 	databaseDSN := flag.String(flagDatabaseDSN, defaultDatabaseDSN, "")
-	secretKey := flag.String(flagSecretKey, defaultSecretKey, "")
+	secretKey := flag.String(flagSecretKey, rand.Text(), "") // Если секретный ключ не указан, генерируем случайный 
 	AccrualSystemAddress := flag.String(flagAccrualSystemAddress, defaultAccrualSystemAddress, "")
 
 	flag.Parse()

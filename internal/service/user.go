@@ -94,3 +94,8 @@ func (s *UserService) Login(ctx context.Context, req *model.LoginRequest) (*mode
 func (s *UserService) GetUserByLogin(ctx context.Context, login string) (*model.User, error) {
 	return s.repo.GetByLogin(ctx, login)
 }
+
+// Repository возвращает репозиторий пользователей
+func (s *UserService) Repository() model.UserRepository {
+	return s.repo
+}

@@ -104,3 +104,34 @@ func Test_WithCompression_UncompressedRequestResponse(t *testing.T) {
 
 	assert.Equal(t, originalResponse, w.Body.String())
 }
+
+func Test_WithCompression_TextPlainCompression(t *testing.T) {
+	// Тест для сжатия text/plain (используется при загрузке заказов)
+	originalResponse := "12345678903"
+
+	req := httptest.NewRequest(http.MethodPost, "/api/user/orders", nil)
+	req.Header.Set("Accept-Encoding", "gzip")
+
+	w := httptest.NewRecorder()
+
+	handler := WithCompression(mockHandler(originalResponse, "text/plain"))
+
+	handler.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "gzip", w.Header().Get("Content-Encoding"))
+
+	var buf bytes.Buffer
+	_, err := io.Copy(&buf, w.Body)
+	require.NoError(t, err)
+
+	decompressor, err := gzip.NewReader(&buf)
+	require.NoError(t, err)
+	defer decompressor.Close()
+
+	var decompressed bytes.Buffer
+	_, err = io.Copy(&decompressed, decompressor)
+	require.NoError(t, err)
+
+	assert.Equal(t, originalResponse, decompressed.String())
+}

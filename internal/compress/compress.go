@@ -22,7 +22,7 @@ func (w *compressResponseWriter) WriteHeader(statusCode int) {
 	}
 	w.wroteHeader = true
 	ct := w.Header().Get("Content-Type")
-	w.compress = strings.Contains(ct, "application/json") || strings.Contains(ct, "text/html")
+	w.compress = strings.Contains(ct, "application/json") || strings.Contains(ct, "text/html")|| strings.Contains(ct, "text/plain")
 	if w.compress {
 		w.Header().Set("Content-Encoding", "gzip")
 	}

@@ -9,7 +9,10 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
- 
+
+const pgErrUniqueViolation = "23505"
+
+
 type DB struct {
 	*sql.DB
 }

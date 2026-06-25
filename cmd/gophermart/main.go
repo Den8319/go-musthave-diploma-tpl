@@ -20,10 +20,8 @@ import (
 
 func main() {
 
-	auth.Init("SECRET_KEY")
-
-
 	cfg := config.New()
+	auth.Init(cfg.SecretKey)
 
 
 	logger.InitLogger(cfg.LogLevel)

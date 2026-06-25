@@ -2,8 +2,13 @@ package repository
 
 import (
 	"context"
+	 "errors"
 
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/model"
+
+	
+	"github.com/jackc/pgx/v5/pgconn"
+	
 )
 
  
@@ -24,16 +29,14 @@ func NewUserRepository(db *DB) *UserDb {
 	`
 
 	err := r.db.QueryRowContext(ctx, query, user.Login, user.PasswordHash).Scan(&user.ID)
-	if err != nil {
+	var pgErr *pgconn.PgError
 	 
-		errMsg := err.Error()
-		if errMsg != "" {
-			return model.ErrorUserExists
-		}
-		return err
+	if errors.As(err, &pgErr) && pgErr.Code == pgErrUniqueViolation {
+		return model.ErrorUserExists
 	}
 
-	return nil
+	return err // Если err == nil, вернется nil. Если другая ошибка — вернется она.
+
 }
 
  

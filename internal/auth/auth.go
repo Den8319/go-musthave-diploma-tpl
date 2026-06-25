@@ -22,17 +22,14 @@ var secretKey string
 
 // Init инициализирует секретный ключ для JWT из строки секрета конфигурации
 func Init(secret string) {
-	if secret == "" {
-		log.Fatal().Msg("SECRET_KEY должен быть заполнен")
-	}
-	
+	 
 	// Используем секрет напрямую
 	secretKey = secret
 	log.Info().Msg("Секретный ключ успешно инициализирован")
 }
 
 // GenerateToken генерирует JWT токен
-func GenerateToken(user, password string) (string, error) {
+func GenerateToken(user string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(model.Expire)),
@@ -40,7 +37,7 @@ func GenerateToken(user, password string) (string, error) {
 		User: user,
 	})
 
-	auth, err := token.SignedString([]byte(password))
+	auth, err := token.SignedString([]byte(secretKey))
 	if err != nil {
 		return "", err
 	}

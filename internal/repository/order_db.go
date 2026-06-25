@@ -3,8 +3,11 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/Den8319/go-musthave-diploma-tpl/internal/model"
+
+	"github.com/jackc/pgx/v5/pgconn"
 )
  
 type OrderDb struct {
@@ -25,20 +28,16 @@ func (r *OrderDb) Create(ctx context.Context, order *model.Order) error {
 	`
 
 	err := r.db.QueryRowContext(ctx, query, order.UserID, order.OrderNumber).Scan(&order.ID, &order.UploadedAt)
-	if err != nil {
-		// Проверка на дублирование уникального ключа
-		if err.Error() == `pq: duplicate key value violates unique constraint "orders_order_number_key"` {
-			return model.ErrorOrderExists
-		}
-		return err
+	var pgErr *pgconn.PgError
+	 
+	if errors.As(err, &pgErr) && pgErr.Code == pgErrUniqueViolation {
+		return model.ErrorUserExists
 	}
-
 	order.Status = "NEW"
 	order.Accrual = 0
 
-	return nil
+	return err // Если err == nil, вернется nil. Если другая ошибка — вернется она.
 }
-
  
 func (r *OrderDb) GetByOrderNumber(ctx context.Context, orderNumber string) (*model.Order, error) {
 	query := `
